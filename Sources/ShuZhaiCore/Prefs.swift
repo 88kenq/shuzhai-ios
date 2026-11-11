@@ -138,11 +138,10 @@ public enum Backup {
         }
         for d in dirs {
             let base = root.appendingPathComponent(d)
-            guard let e = fm.enumerator(at: base, includingPropertiesForKeys: [.isDirectoryKey]) else { continue }
-            for case let u as URL in e {
-                if (try? u.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true { continue }
-                let rel = d + "/" + u.path.dropFirst(base.path.count + 1)
-                try a.addEntry(with: String(rel), relativeTo: root, compressionMethod: .deflate)
+            for rel in (fm.subpaths(atPath: base.path) ?? []).sorted() {
+                var isDir: ObjCBool = false
+                guard fm.fileExists(atPath: base.appendingPathComponent(rel).path, isDirectory: &isDir), !isDir.boolValue else { continue }
+                try a.addEntry(with: d + "/" + rel, relativeTo: root, compressionMethod: .deflate)
             }
         }
     }
