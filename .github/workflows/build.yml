@@ -22,13 +22,14 @@ jobs:
           brew install xcodegen
           xcodegen generate
 
-      - name: Build (unsigned)
+      - name: Build for iPhone (unsigned)
         run: |
           set -o pipefail
           xcodebuild -project ShuZhai.xcodeproj -scheme ShuZhai -configuration Release \
             -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            build | tee build.log | grep -E "error:|warning: .*App/Sources|BUILD" || true
+            build > build.log 2>&1 || { grep -E "error:" build.log | head -60; exit 1; }
+          grep -E "warning: .*App/Sources" build.log | sort -u | head -40 || true
           test -d build/Build/Products/Release-iphoneos/ShuZhai.app
 
       - name: Package IPA
@@ -38,19 +39,55 @@ jobs:
           zip -qry ShuZhai.ipa Payload
           ls -la ShuZhai.ipa
 
-      - name: Upload build log
+      - name: Build for simulator
+        run: |
+          set -o pipefail
+          xcodebuild -project ShuZhai.xcodeproj -scheme ShuZhai -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath simbuild \
+            CODE_SIGNING_ALLOWED=NO build > simbuild.log 2>&1 || { grep -E "error:" simbuild.log | head -40; exit 1; }
+
+      - name: Screenshots in simulator
+        run: |
+          python3 ci/make_samples.py "$PWD/samples"
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone 16') or x['name'].startswith('iPhone 15')))")
+          echo "simulator $UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryLevel 87 --batteryState discharging || true
+          xcrun simctl install "$UDID" simbuild/Build/Products/Debug-iphonesimulator/ShuZhai.app
+          mkdir -p shots
+          for s in shelf reader page2 menu style theme other tts toc search rules scroll night epub; do
+            SIMCTL_CHILD_SZ_DEMO_DIR="$PWD/samples" SIMCTL_CHILD_SZ_DEMO_STEP="$s" \
+              xcrun simctl launch --terminate-running-process "$UDID" com.shuzhai.reader.ios > /dev/null
+            sleep 7
+            xcrun simctl io "$UDID" screenshot "shots/$s.png" > /dev/null 2>&1
+            echo "shot $s"
+          done
+          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "ShuZhai"' --style compact 2>/dev/null | grep -iE "fault|crash|fatal" | head -20 || true
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots
+          if-no-files-found: ignore
+
+      - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
-          path: build.log
+          path: |
+            build.log
+            simbuild.log
           if-no-files-found: ignore
 
       - name: Publish to "latest" release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VER=$(grep -m1 'MARKETING_VERSION' project.yml | sed 's/.*"\(.*\)".*/\1/')
+          VER=$(grep -m1 'MARKETING_VERSION:' project.yml | sed 's/.*"\(.*\)".*/\1/')
           gh release delete latest --cleanup-tag -y || true
           gh release create latest ShuZhai.ipa --prerelease \
             --title "書齋 iPhone 版 $VER（最新）" \
