@@ -1,0 +1,68 @@
+name: ShuZhai
+options:
+  bundleIdPrefix: com.shuzhai
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  ShuZhaiCore:
+    path: .
+targets:
+  ShuZhai:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Sources
+      - path: App/Resources/Assets.xcassets
+      - path: App/Resources/opencc
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: ShuZhaiCore
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: 書齋
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [audio]
+        LSSupportsOpeningDocumentsInPlace: false
+        UIFileSharingEnabled: false
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: 文字檔
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [public.plain-text]
+          - CFBundleTypeName: EPUB 電子書
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [org.idpf.epub-container]
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: org.idpf.epub-container
+            UTTypeDescription: EPUB 電子書
+            UTTypeConformsTo: [public.data, public.archive, public.zip-archive]
+            UTTypeTagSpecification:
+              public.filename-extension: [epub]
+              public.mime-type: [application/epub+zip]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shuzhai.reader.ios
+        PRODUCT_NAME: ShuZhai
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGNING_ALLOWED: "NO"
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGN_IDENTITY: ""
+        DEVELOPMENT_TEAM: ""
+        ENABLE_BITCODE: "NO"
+schemes:
+  ShuZhai:
+    build:
+      targets:
+        ShuZhai: all
