@@ -57,6 +57,7 @@ public final class Prefs {
 public struct ReadStyle: Codable, Equatable {
     public var fontKey = ""            // "" 系統預設、"serif" 宋體、"font:檔名"
     public var fontSize = 20
+    public var titleScale = 1.0        // 章名是內文的幾倍
     public var letterSpacing = 0.0     // em
     public var lineSpacing = 1.6
     public var paraSpacing = 0.5
@@ -83,7 +84,7 @@ public struct ReadStyle: Codable, Equatable {
         let c = try d.container(keyedBy: CodingKeys.self)
         let def = ReadStyle()
         func v<T: Decodable>(_ k: CodingKeys, _ x: T) -> T { (try? c.decode(T.self, forKey: k)) ?? x }
-        fontKey = v(.fontKey, def.fontKey); fontSize = v(.fontSize, def.fontSize)
+        fontKey = v(.fontKey, def.fontKey); fontSize = v(.fontSize, def.fontSize); titleScale = v(.titleScale, def.titleScale)
         letterSpacing = v(.letterSpacing, def.letterSpacing); lineSpacing = v(.lineSpacing, def.lineSpacing)
         paraSpacing = v(.paraSpacing, def.paraSpacing); marginH = v(.marginH, def.marginH)
         marginTop = v(.marginTop, def.marginTop); marginBottom = v(.marginBottom, def.marginBottom)

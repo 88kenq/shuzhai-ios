@@ -136,7 +136,7 @@ final class Typesetter {
         }
         let tp = NSMutableParagraphStyle(); tp.lineSpacing = 4
         let titleStr = NSAttributedString(string: title, attributes: [
-            .font: Self.font(style, size: size * 1.15, bold: true), fgKey: fg, .paragraphStyle: tp, .kern: CGFloat(style.letterSpacing) * size,
+            .font: Self.font(style, size: size * CGFloat(style.titleScale), bold: true), fgKey: fg, .paragraphStyle: tp, .kern: CGFloat(style.letterSpacing) * size,
         ])
         let fs = CTFramesetterCreateWithAttributedString(titleStr)
         let th = CTFramesetterSuggestFrameSizeWithConstraints(fs, CFRange(location: 0, length: 0), nil,

@@ -84,6 +84,7 @@ struct StylePanel: View {
         }
         hint("可匯入 TTF／OTF 字型檔；長按匯入的字型可刪除")
         stepRow("字級", value: app.style.fontSize, range: 12...40) { app.style.fontSize = $0 }
+        SliderRow(name: "章名大小", value: app.style.titleScale, range: 0.7...1.6, step: 0.05, fmt: { String(format: "%.2f 倍", $0) }) { app.style.titleScale = $0 }
         HStack {
             Text("粗細").font(.body)
             Spacer()
