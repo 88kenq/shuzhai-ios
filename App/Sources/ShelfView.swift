@@ -40,6 +40,8 @@ struct ShelfView: View {
     @State private var pickRestore = false
     @State private var confirmRestore: URL?
     @State private var showAbout = false
+    @State private var wentBackground = false
+    @Environment(\.scenePhase) private var scenePhase
 
     private let columns = [GridItem(.adaptive(minimum: 100, maximum: 160), spacing: 14)]
 
@@ -133,6 +135,18 @@ struct ShelfView: View {
         }
         .tint(.accent)
         .onAppear { model.refresh() }
+        // 從背景回來時，若停在書架就直接打開上次讀的書
+        .onChange(of: scenePhase) { p in
+            if p == .background { wentBackground = true }
+            if p == .active, wentBackground {
+                wentBackground = false
+                let busyNow = showImporter || pickRestore || showRules || backupURL != nil || model.importing || busy
+                if model.openBookId == nil, !busyNow, model.prefs.bool("autoResume", true),
+                   let last = model.books.filter({ $0.lastReadAt > 0 }).max(by: { $0.lastReadAt < $1.lastReadAt }) {
+                    model.openBookId = last.id
+                }
+            }
+        }
     }
 
     // ── 分組 ──
