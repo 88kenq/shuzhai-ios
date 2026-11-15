@@ -82,6 +82,11 @@ final class AppModel: ObservableObject {
             }
         }
         Demo.start(self)
+        // 冷啟動時直接回到上次閱讀的書
+        if Demo.step == nil, prefs.bool("autoResume", true),
+           let last = store.books.filter({ $0.lastReadAt > 0 }).max(by: { $0.lastReadAt < $1.lastReadAt }) {
+            openBookId = last.id
+        }
     }
 
     /// 重新讀取全部設定（還原備份後）
