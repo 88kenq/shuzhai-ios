@@ -52,7 +52,6 @@ struct ShelfView: View {
             ZStack {
                 Color.page.ignoresSafeArea()
                 ScrollView {
-                    if let last = model.books.first(where: { $0.lastReadAt > 0 }) { continueCard(last) }
                     if !model.books.isEmpty { groupTabs }
                     if shown.isEmpty {
                         VStack(spacing: 12) {
