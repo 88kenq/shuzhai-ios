@@ -75,8 +75,6 @@ struct ShelfView: View {
                         Button { backup() } label: { Label("備份到檔案", systemImage: "square.and.arrow.up") }
                         Button { pickRestore = true } label: { Label("從備份還原", systemImage: "square.and.arrow.down") }
                         Button { showAbout = true } label: { Label("關於書齋", systemImage: "info.circle") }
-                        Toggle("開啟時直接回到上次閱讀", isOn: Binding(get: { model.prefs.bool("autoResume", true) },
-                                                              set: { model.prefs.set("autoResume", $0); model.objectWillChange.send() }))
                     } label: { Image(systemName: "ellipsis.circle") }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -140,7 +138,7 @@ struct ShelfView: View {
             if p == .active, wentBackground {
                 wentBackground = false
                 let busyNow = showImporter || pickRestore || showRules || backupURL != nil || model.importing || busy
-                if model.openBookId == nil, !busyNow, model.prefs.bool("autoResume", true),
+                if model.openBookId == nil, !busyNow,
                    let last = model.books.filter({ $0.lastReadAt > 0 }).max(by: { $0.lastReadAt < $1.lastReadAt }) {
                     model.openBookId = last.id
                 }
